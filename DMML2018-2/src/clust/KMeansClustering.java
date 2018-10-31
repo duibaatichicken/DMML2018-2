@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,8 @@ import ds.Wount;
 
 public class KMeansClustering {
 	
-	private static final String FILEPATH = "";
+	private static final String DOCUMENTS_FILEPATH = "";
+	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 	
 	private int numberOfDocuments;
@@ -22,6 +24,7 @@ public class KMeansClustering {
 	
 	private Map<Integer, List<Wount>> data;
 	private List<Centroid> kMeans;
+	private HashMap<Integer, Integer> documentFrequencies;
 	private int[] previousMembership;
 	private int[] currentMembership;
 	
@@ -33,14 +36,16 @@ public class KMeansClustering {
 	public KMeansClustering(int k) {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
+		this.documentFrequencies = new HashMap<Integer, Integer>();
 		
 		/**
-		 * Use the filepath to read the file and store it
+		 * Use the documents filepath to read the file and store it
 		 * for quick access. Also store metadata. The format of the
 		 * metadata data is as follows. It is a list of three integers,
 		 * (#documents, #words, //TODO: this attribute)
+		 * Also //TODO: preprocess the IDF array
 		 */
-		List<Integer> metadata = readData(FILEPATH);
+		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
 		this.numberOfWords = metadata.get(1);
 		
@@ -52,7 +57,7 @@ public class KMeansClustering {
 			this.currentMembership[i] = 0;
 		}
 		
-		// Initialise the k disfferent means.
+		// Initialise the k different means.
 		initialiseKMeans(k);
 	}
 	
@@ -62,14 +67,19 @@ public class KMeansClustering {
 	 * @description Read data from the specified filepath. It
 	 * assumes that the data is formatted according to certain
 	 * rules as follows:
-	 * 1)
-	 * 2)
-	 * 3)
+	 * 1) first 3 lines are :
+	 * * D = number of documents
+	 * * W = number of words
+	 * * NNZ = number of nonzero entries
+	 * 2) next NNZ lines are :
+	 * * docID wordID count
+	 * * where count=number of occurrences word wordID in document docID
 	 */
 	private List<Integer> readData(String filepath) {
 		List<Integer> ans = new ArrayList<Integer>();
 		try {
 			int currDocId = 0;
+			int currWordId = 0;
 			BufferedReader br = new BufferedReader(new FileReader(filepath));
 			String currentLine = "";
 			while((currentLine = br.readLine()) != null) {
@@ -79,7 +89,9 @@ public class KMeansClustering {
 						data.put(Integer.parseInt(tmpArray[0]), new ArrayList<Wount>());
 						currDocId = Integer.parseInt(tmpArray[0]);
 					}
-					data.get(currDocId).add(new Wount(Integer.parseInt(tmpArray[1]), Double.parseDouble(tmpArray[2])));
+					currWordId = Integer.parseInt(tmpArray[1]);
+					data.get(currDocId).add(new Wount(currWordId, Double.parseDouble(tmpArray[2])));
+					documentFrequencies.put(currWordId,documentFrequencies.getOrDefault(currWordId,0)+1);
 				} else { // Return metadata to store separately.
 					ans.add(Integer.parseInt(tmpArray[0]));
 				}
@@ -118,7 +130,7 @@ public class KMeansClustering {
 	 * metric by default.
 	 */
 	private void cluster(boolean useJaccard) {
-		// Add code to cluster vertices to current set of centroids.
+		// TODO : Add code to cluster vertices to current set of centroids.
 	}
 	
 	/************************* *************************/
@@ -128,7 +140,7 @@ public class KMeansClustering {
 	 * of formed clusters.
 	 */
 	private void recomputeCentroids() {
-		// Add code to recompute centroids from the currentMembership array.
+		// TODO : Add code to recompute centroids from the currentMembership array.
 	}
 	
 	/************************* *************************/
@@ -151,15 +163,34 @@ public class KMeansClustering {
 	/************************* *************************/
 	
 	/**
-	 * @description Find the SQUARE of the Euclidean distance
-	 * between a document and a centroid, both given by ID.
+	 * @description Find the angle between two documents in
+	 * the vector model using tf-idf weights for words.
 	 */
-	private double getEuclideanDistance(int documentId, int centroidId) {
-		double ans = 0;
-		
-		// TODO: Add code for Euclidean distance SQUARED.
-		
-		return ans;
+	private double getAngleDistance(int documentId, int centroidId) {
+		double dotProduct = 0;
+		double documentNorm = 0;
+		double centroidNorm = 0;
+		double tempIDF = 0;
+		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		Iterator<Wount> documentIter = data.get(documentId).iterator();
+		Wount currentDocumentWount;
+		Wount currentCentroidWount;
+		while(centroidIter.hasNext() && documentIter.hasNext() ) {
+			currentDocumentWount = documentIter.next();
+			currentCentroidWount = centroidIter.next();
+			while (currentDocumentWount.getId() < currentCentroidWount.getId()) {
+				currentDocumentWount = documentIter.next();
+			}
+			while (currentDocumentWount.getId() > currentCentroidWount.getId()) {
+				currentCentroidWount = centroidIter.next();
+			}
+			// Set tf-idf of the current word w.r.t document tf and centroid tf
+			tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentDocumentWount.getId()));
+			dotProduct += currentDocumentWount.getCount()*currentCentroidWount.getCount()*Math.pow(tempIDF,2);
+			documentNorm += Math.pow(currentDocumentWount.getCount()*tempIDF,2);
+			centroidNorm += Math.pow(currentCentroidWount.getCount()*tempIDF,2);
+		}
+		return dotProduct/Math.sqrt(documentNorm*centroidNorm);
 	}
 	
 	/************************* *************************/
