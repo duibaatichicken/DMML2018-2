@@ -51,6 +51,9 @@ public class KMeansClustering {
 			this.previousMembership[i] = -1;
 			this.currentMembership[i] = 0;
 		}
+		
+		// Initialise the k disfferent means.
+		initialiseKMeans(k);
 	}
 	
 	/************************* *************************/
@@ -95,6 +98,42 @@ public class KMeansClustering {
 	/************************* *************************/
 	
 	/**
+	 * @description Initially decide on k points to be
+	 * the centroids for starting the k-means process.
+	 * In this function, we take k points distributed
+	 * equally by document ID.
+	 */
+	private void initialiseKMeans(int k) {
+		int d = numberOfDocuments / k;
+		for(int i=1;i<=k;++i) {
+			kMeans.add(new Centroid(i, data.get(d*k)));
+		}
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Cluster given set of points based on
+	 * given centroids and given metric. Uses Euclidean
+	 * metric by default.
+	 */
+	private void cluster(boolean useJaccard) {
+		// Add code to cluster vertices to current set of centroids.
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Recompute centroids by taking average
+	 * of formed clusters.
+	 */
+	private void recomputeCentroids() {
+		// Add code to recompute centroids from the currentMembership array.
+	}
+	
+	/************************* *************************/
+	
+	/**
 	 * @description Check whether the clustering method has
 	 * converged to its final point. Uses a threshold defined
 	 * as a constant.
@@ -107,5 +146,33 @@ public class KMeansClustering {
 			}
 		}
 		return (sameCount >= ACCEPTANCE_THRESHOLD * numberOfDocuments);
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Find the SQUARE of the Euclidean distance
+	 * between a document and a centroid, both given by ID.
+	 */
+	private double getEuclideanDistance(int documentId, int centroidId) {
+		double ans = 0;
+		
+		// TODO: Add code for Euclidean distance SQUARED.
+		
+		return ans;
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Find the Jaccard distance between a document
+	 * and a centroid, both given by ID.
+	 */
+	private double getJaccardDistance(int documentId, int centroidId) {
+		double ans = 0;
+		
+		// TODO: Add code for Jaccard distance.
+		
+		return ans;
 	}
 }
