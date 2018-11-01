@@ -32,8 +32,9 @@ public class KMeansClustering {
 	
 	/**
 	 * Constructor
+	 * @throws IOException 
 	 */
-	public KMeansClustering(int k) {
+	public KMeansClustering(int k) throws IOException {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
 		this.documentFrequencies = new HashMap<Integer, Integer>();
@@ -64,6 +65,7 @@ public class KMeansClustering {
 	/************************* *************************/
 	
 	/**
+	 * @throws IOException 
 	 * @description Read data from the specified filepath. It
 	 * assumes that the data is formatted according to certain
 	 * rules as follows:
@@ -75,36 +77,29 @@ public class KMeansClustering {
 	 * * docID wordID count
 	 * * where count=number of occurrences word wordID in document docID
 	 */
-	private List<Integer> readData(String filepath) {
+	private List<Integer> readData(String filepath) throws IOException {
 		List<Integer> ans = new ArrayList<Integer>();
-		try {
-			int currDocId = 0;
-			int currWordId = 0;
-			BufferedReader br = new BufferedReader(new FileReader(filepath));
-			String currentLine = "";
-			while((currentLine = br.readLine()) != null) {
-				String[] tmpArray = currentLine.split(" ");
-				if(tmpArray.length == 3) { // Ignore the first three metadata lines.
-					if(Integer.parseInt(tmpArray[0]) != currDocId) { // New documents entries.
-						data.put(Integer.parseInt(tmpArray[0]), new ArrayList<Wount>());
-						currDocId = Integer.parseInt(tmpArray[0]);
-					}
-					currWordId = Integer.parseInt(tmpArray[1]);
-					data.get(currDocId).add(new Wount(currWordId, Double.parseDouble(tmpArray[2])));
-					documentFrequencies.put(currWordId,documentFrequencies.getOrDefault(currWordId,0)+1);
-				} else { // Return metadata to store separately.
-					ans.add(Integer.parseInt(tmpArray[0]));
+		int currDocId = 0;
+		int currWordId = 0;
+		BufferedReader br = new BufferedReader(new FileReader(filepath));
+		String currentLine = "";
+		while((currentLine = br.readLine()) != null) {
+			String[] tmpArray = currentLine.split(" ");
+			if(tmpArray.length == 3) { // Ignore the first three metadata lines.
+				if(Integer.parseInt(tmpArray[0]) != currDocId) { // New documents entries.
+					data.put(Integer.parseInt(tmpArray[0]), new ArrayList<Wount>());
+					currDocId = Integer.parseInt(tmpArray[0]);
 				}
+				currWordId = Integer.parseInt(tmpArray[1]);
+				data.get(currDocId).add(new Wount(currWordId, Double.parseDouble(tmpArray[2])));
+				documentFrequencies.put(currWordId,documentFrequencies.getOrDefault(currWordId,0)+1);
+			} else { // Return metadata to store separately.
+				ans.add(Integer.parseInt(tmpArray[0]));
 			}
-			br.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		br.close();
 		return ans;
+		// TODO FileNotFoundException
 	}
 	
 	/************************* *************************/
