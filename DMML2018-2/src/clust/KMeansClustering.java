@@ -126,11 +126,30 @@ public class KMeansClustering {
 	
 	/**
 	 * @description Cluster given set of points based on
-	 * given centroids and given metric. Uses Euclidean
+	 * given centroids and given metric. Uses Jaccard
 	 * metric by default.
 	 */
-	private void cluster(boolean useJaccard) {
-		// TODO : Add code to cluster vertices to current set of centroids.
+	private void cluster(boolean useAngleDistance) {
+		int currentDocumentID = 0;
+		int currentCentroidID = 0;
+		double maxDistance = 0;
+		double currentDistance = 0;
+		int closestCentroidID = -1;
+		Iterator<Integer> documentIDs = data.keySet().iterator();
+		while (documentIDs.hasNext()) {
+			currentDocumentID = documentIDs.next();
+			Iterator<Centroid> centroids = kMeans.iterator();
+			while (centroids.hasNext()) {
+				currentCentroidID = centroids.next().getId();
+				currentDistance = useAngleDistance ? getAngleDistance(currentDocumentID, currentCentroidID) : getJaccardDistance(currentDocumentID, currentCentroidID);
+				if (maxDistance < currentDistance) {
+					closestCentroidID = currentCentroidID;
+					maxDistance = currentDistance;
+				}
+			}
+			previousMembership[currentDocumentID] = currentMembership[currentDocumentID];
+			currentMembership[currentDocumentID] = closestCentroidID;
+		}
 	}
 	
 	/************************* *************************/
