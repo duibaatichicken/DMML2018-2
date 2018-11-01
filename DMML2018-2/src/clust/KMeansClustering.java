@@ -197,13 +197,33 @@ public class KMeansClustering {
 	
 	/**
 	 * @description Find the Jaccard distance between a document
-	 * and a centroid, both given by ID.
+	 * and a centroid, both given by ID. Jaccard distance is
+	 * the ratio between the sizes of symmetric difference
+	 * and union. Note that this converts our model from
+	 * 'bag of words' to 'set of words'.
 	 */
 	private double getJaccardDistance(int documentId, int centroidId) {
-		double ans = 0;
-		
-		// TODO: Add code for Jaccard distance.
-		
-		return ans;
+		int symmetricDifference = 0;
+		int union = 0;
+		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		Iterator<Wount> documentIter = data.get(documentId).iterator();
+		Wount currentDocumentWount;
+		Wount currentCentroidWount;
+		while(centroidIter.hasNext() && documentIter.hasNext() ) {
+			currentDocumentWount = documentIter.next();
+			currentCentroidWount = centroidIter.next();
+			while (currentDocumentWount.getId() < currentCentroidWount.getId()) {
+				symmetricDifference++;
+				union++;
+				currentDocumentWount = documentIter.next();
+			}
+			while (currentDocumentWount.getId() > currentCentroidWount.getId()) {
+				symmetricDifference++;
+				union++;
+				currentCentroidWount = centroidIter.next();
+			}
+			union++;
+		}
+		return (double)symmetricDifference/(double)union;
 	}
 }
