@@ -13,6 +13,7 @@ import java.util.Map;
 import ds.Centroid;
 import ds.Wount;
 
+@SuppressWarnings("unused")
 public class KMeansClustering {
 	
 	private static final String DOCUMENTS_FILEPATH = "";
@@ -34,7 +35,7 @@ public class KMeansClustering {
 	 * Constructor
 	 * @throws IOException 
 	 */
-	public KMeansClustering(int k) throws IOException {
+	public KMeansClustering(int k, boolean useAngleDistance) throws IOException {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
 		this.documentFrequencies = new HashMap<Integer, Integer>();
@@ -43,8 +44,7 @@ public class KMeansClustering {
 		 * Use the documents filepath to read the file and store it
 		 * for quick access. Also store metadata. The format of the
 		 * metadata data is as follows. It is a list of three integers,
-		 * (#documents, #words, //TODO: this attribute)
-		 * Also //TODO: preprocess the IDF array
+		 * (#documents, #words, #nonzero entries)
 		 */
 		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
@@ -60,6 +60,12 @@ public class KMeansClustering {
 		
 		// Initialise the k different means.
 		initialiseKMeans(k);
+		// run k-means clustering up to convergence
+		while (!this.hasConverged()) {
+			this.cluster(useAngleDistance);
+			this.recomputeCentroids();
+		}
+		// TODO : format output
 	}
 	
 	/************************* *************************/
@@ -126,16 +132,14 @@ public class KMeansClustering {
 	 */
 	private void cluster(boolean useAngleDistance) {
 		int currentDocumentID = 0;
-		int currentCentroidID = 0;
 		double maxDistance = 0;
 		double currentDistance = 0;
 		int closestCentroidID = -1;
+		int k = kMeans.size();
 		Iterator<Integer> documentIDs = data.keySet().iterator();
 		while (documentIDs.hasNext()) {
 			currentDocumentID = documentIDs.next();
-			Iterator<Centroid> centroids = kMeans.iterator();
-			while (centroids.hasNext()) {
-				currentCentroidID = centroids.next().getId();
+			for (int currentCentroidID = 1; currentCentroidID <= k; ++currentCentroidID) {
 				currentDistance = useAngleDistance ? getAngleDistance(currentDocumentID, currentCentroidID) : getJaccardDistance(currentDocumentID, currentCentroidID);
 				if (maxDistance < currentDistance) {
 					closestCentroidID = currentCentroidID;
@@ -152,8 +156,47 @@ public class KMeansClustering {
 	/**
 	 * @description Recompute centroids by taking average
 	 * of formed clusters.
+	 * TODO : Improve the implementation. Perhaps a customised WountList that supports addition?
 	 */
 	private void recomputeCentroids() {
+		int k = kMeans.size();
+		Wount currentWount = new Wount(-1,-1);
+		double[][] currentSums = new double[k][this.numberOfWords];
+		int[] currentSizes = new int[k];
+		int currentDocumentID = -1;
+		/*
+		 * Iterate over documents
+		 * Add the word counts of each document to the sum for the appropriate cluster
+		 * Each document contributes +1 to the size of its cluster
+		 * TODO : Is it better to make k passes of the membership array?
+		 */
+		Iterator<Integer> documentIter = data.keySet().iterator();
+		while (documentIter.hasNext()) {
+			currentDocumentID = documentIter.next();
+			Iterator<Wount> wountIter = data.get(currentDocumentID).iterator();
+			while (wountIter.hasNext()) {
+				currentWount = wountIter.next();
+				currentSums[currentMembership[currentDocumentID]][currentWount.getId()] += currentWount.getCount();
+			}
+			currentSizes[currentMembership[currentDocumentID]]++;
+		}
+		/*
+		 * Iterate over clusters
+		 * For each word, contribute a size-normalised wount to cluster coordinates
+		 * if that wount is nonzero in the cluster
+		 */
+		Iterator<Centroid> centroidIter = kMeans.iterator();
+		Centroid currentCentroid = new Centroid(-1, new ArrayList<Wount>());
+		while (centroidIter.hasNext()) {
+			currentCentroid = centroidIter.next();
+			List<Wount> currentMean = new ArrayList<Wount>();
+			for (int wordID = 1; wordID <= this.numberOfWords; ++wordID) {
+				if (currentSums[currentCentroid.getId()][wordID] > 0) {
+					currentMean.add(new Wount(wordID, currentSums[currentCentroid.getId()][wordID] / currentSizes[currentCentroid.getId()]));
+				}
+			}
+			kMeans.get(currentCentroid.getId()).setCoordinates(currentMean);
+		}
 		// TODO : Add code to recompute centroids from the currentMembership array.
 	}
 	
