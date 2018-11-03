@@ -46,25 +46,25 @@ public class KMeansClustering {
 		 * metadata data is as follows. It is a list of three integers,
 		 * (#documents, #words, #nonzero entries)
 		 */
-		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
-		this.numberOfDocuments = metadata.get(0);
-		this.numberOfWords = metadata.get(1);
-		
-		// Initialise other fields based on data.
-		this.previousMembership = new int[numberOfDocuments];
-		this.currentMembership = new int[numberOfDocuments];
-		for(int i=0;i<numberOfDocuments;++i) {
-			this.previousMembership[i] = -1;
-			this.currentMembership[i] = 0;
-		}
-		
-		// Initialise the k different means.
-		initialiseKMeans(k);
-		// run k-means clustering up to convergence
-		while (!this.hasConverged()) {
-			this.cluster(useAngleDistance);
-			this.recomputeCentroids();
-		}
+//		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
+//		this.numberOfDocuments = metadata.get(0);
+//		this.numberOfWords = metadata.get(1);
+//		
+//		// Initialise other fields based on data.
+//		this.previousMembership = new int[numberOfDocuments];
+//		this.currentMembership = new int[numberOfDocuments];
+//		for(int i=0;i<numberOfDocuments;++i) {
+//			this.previousMembership[i] = -1;
+//			this.currentMembership[i] = 0;
+//		}
+//		
+//		// Initialise the k different means.
+//		initialiseKMeans(k);
+//		// run k-means clustering up to convergence
+//		while (!this.hasConverged()) {
+//			this.cluster(useAngleDistance);
+//			this.recomputeCentroids();
+//		}
 		// TODO : format output
 	}
 	
@@ -161,7 +161,7 @@ public class KMeansClustering {
 	private void recomputeCentroids() {
 		int k = kMeans.size();
 		Wount currentWount = new Wount(-1,-1);
-		double[][] currentSums = new double[k][this.numberOfWords];
+		double[][] currentSums = new double[k][numberOfWords];
 		int[] currentSizes = new int[k];
 		int currentDocumentID = -1;
 		/*
@@ -190,7 +190,7 @@ public class KMeansClustering {
 		while (centroidIter.hasNext()) {
 			currentCentroid = centroidIter.next();
 			List<Wount> currentMean = new ArrayList<Wount>();
-			for (int wordID = 1; wordID <= this.numberOfWords; ++wordID) {
+			for (int wordID = 1; wordID <= numberOfWords; ++wordID) {
 				if (currentSums[currentCentroid.getId()][wordID] > 0) {
 					currentMean.add(new Wount(wordID, currentSums[currentCentroid.getId()][wordID] / currentSizes[currentCentroid.getId()]));
 				}
@@ -290,9 +290,66 @@ public class KMeansClustering {
 	/************************* *************************/
 	
 	/**
+	 * @description Adds two vectors to obtain the sum vector
+	 * with coordinates sorted in increasing order.
+	 */
+	private List<Wount> addCoordinates(List<Wount> A, List<Wount> B) {
+		List<Wount> ans = new ArrayList<Wount>();
+		int aIndex = 0, bIndex = 0;
+		
+		while(true) {
+			if(aIndex >= A.size()) {
+				if(bIndex >= B.size()) {
+					break;
+				} else {
+					ans.add(B.get(bIndex++));
+				}
+			} else {
+				if(bIndex >= B.size()) {
+					ans.add(A.get(aIndex++));
+				} else {
+					if(A.get(aIndex).getId() < B.get(bIndex).getId()) {
+						ans.add(A.get(aIndex++));
+					} else if(A.get(aIndex).getId() > B.get(bIndex).getId()) {
+						ans.add(B.get(bIndex++));
+					} else { // if(A.get(aIndex).getId() == B.get(bIndex).getId()) {
+						ans.add(new Wount(A.get(aIndex).getId(), A.get(aIndex++).getCount() + B.get(bIndex++).getCount()));
+					}
+				}
+			}
+		}
+		
+		return ans;
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @throws IOException 
 	 * @description Main function for local testing.
 	 */
-	public static void main(String[] args) {
-		
+	public static void main(String[] args) throws IOException {
+		List<Wount> a = new ArrayList<Wount>();
+		a.add(new Wount(1, 3));
+		a.add(new Wount(3, 1));
+		a.add(new Wount(5, 2));
+		a.add(new Wount(6, 2));
+		a.add(new Wount(10, 1));
+		a.add(new Wount(14, 3));
+		a.add(new Wount(17, 5));
+		a.add(new Wount(18, 2));
+
+		List<Wount> b = new ArrayList<Wount>();
+		b.add(new Wount(2, 1));
+		b.add(new Wount(3, 2));
+		b.add(new Wount(6, 4));
+		b.add(new Wount(7, 1));
+		b.add(new Wount(12, 1));
+		b.add(new Wount(14, 2));
+		b.add(new Wount(15, 3));
+		b.add(new Wount(18, 1));
+
+		KMeansClustering km = new KMeansClustering(1, false);
+		System.out.println(km.addCoordinates(a, b));
 	}
 }

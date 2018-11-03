@@ -37,6 +37,9 @@ public class Wount {
 	public void setId(int newID) { this.id = newID; }
 	public void setCount(double newCount) { this.count = newCount; }
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString() {
 		return "("+this.id+", "+this.count+")";
 	}
