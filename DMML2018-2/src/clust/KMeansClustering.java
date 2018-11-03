@@ -338,6 +338,15 @@ public class KMeansClustering {
 		b.add(new Wount(18, 1));
 
 		KMeansClustering km = new KMeansClustering(1, false);
-		System.out.println(km.addCoordinates(a, b));
+//		System.out.println(km.addCoordinates(a, b));
+		for (int i = 0; i < km.kMeans.get(0).getCoordinatesSize(); ++i) {
+			System.out.print(km.kMeans.get(0).getCoordinates().get(i).getId()+" ");
+			if ((i+1) % 20 == 0) {
+				System.out.println();
+			}
+		}
+		for (int i = 1; i <= 5; ++i) {
+			System.out.println("\n"+km.getJaccardDistance(i, 1));
+		}
 	}
 }
