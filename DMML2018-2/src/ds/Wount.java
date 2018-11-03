@@ -28,4 +28,18 @@ public class Wount {
 	 */
 	public int getId() { return this.id; }
 	public double getCount() { return this.count; }
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Setter functions.
+	 */
+	public void setId(int newID) { this.id = newID; }
+	public void setCount(double newCount) { this.count = newCount; }
+
+	public String toString() {
+		return "("+this.id+", "+this.count+")";
+	}
 }
+
+
