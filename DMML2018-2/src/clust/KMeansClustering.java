@@ -16,7 +16,7 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 	
-	private static final String DOCUMENTS_FILEPATH = "";
+	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 	
@@ -131,14 +131,11 @@ public class KMeansClustering {
 	 * metric by default.
 	 */
 	private void cluster(boolean useAngleDistance) {
-		int currentDocumentID = 0;
 		double maxDistance = 0;
 		double currentDistance = 0;
 		int closestCentroidID = -1;
 		int k = kMeans.size();
-		Iterator<Integer> documentIDs = data.keySet().iterator();
-		while (documentIDs.hasNext()) {
-			currentDocumentID = documentIDs.next();
+		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
 			for (int currentCentroidID = 1; currentCentroidID <= k; ++currentCentroidID) {
 				currentDistance = useAngleDistance ? getAngleDistance(currentDocumentID, currentCentroidID) : getJaccardDistance(currentDocumentID, currentCentroidID);
 				if (maxDistance < currentDistance) {
@@ -146,8 +143,8 @@ public class KMeansClustering {
 					maxDistance = currentDistance;
 				}
 			}
-			previousMembership[currentDocumentID] = currentMembership[currentDocumentID];
-			currentMembership[currentDocumentID] = closestCentroidID;
+			previousMembership[currentDocumentID-1] = currentMembership[currentDocumentID-1];
+			currentMembership[currentDocumentID-1] = closestCentroidID;
 		}
 	}
 	
@@ -170,7 +167,7 @@ public class KMeansClustering {
 		 * TODO : Is it better to make k passes of the membership array?
 		 */
 		// reset the coordinates for each centroid
-		 for (int i = 1; i <= k; ++i) {
+		 for (int i = 0; i < k; ++i) {
 			 kMeans.get(i).setCoordinates(new ArrayList<Wount>());
 		 }
 		 
@@ -219,7 +216,7 @@ public class KMeansClustering {
 		double documentNorm = 0;
 		double centroidNorm = 0;
 		double tempIDF = 0;
-		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		Iterator<Wount> centroidIter = kMeans.get(centroidId-1).getCoordinates().iterator();
 		Iterator<Wount> documentIter = data.get(documentId).iterator();
 		Wount currentDocumentWount;
 		Wount currentCentroidWount;
@@ -253,7 +250,7 @@ public class KMeansClustering {
 	private double getJaccardDistance(int documentId, int centroidId) {
 		int intersection = 0;
 		Iterator<Wount> documentIter = data.get(documentId).iterator();
-		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		Iterator<Wount> centroidIter = kMeans.get(centroidId-1).getCoordinates().iterator();
 		int documentCurrentWordId = Integer.MIN_VALUE;
 		int centroidCurrentWordId = Integer.MIN_VALUE;
 		
@@ -272,7 +269,7 @@ public class KMeansClustering {
 			}
 		}
 		
-		int union = data.get(documentId).size() + kMeans.get(centroidId).getCoordinates().size() - intersection;
+		int union = data.get(documentId).size() + kMeans.get(centroidId-1).getCoordinates().size() - intersection;
 		int symmetricDifference = union - intersection;
 //		System.out.println(intersection + ", " + union);
 		return (double)symmetricDifference/(double)union;
