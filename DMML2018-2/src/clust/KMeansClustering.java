@@ -247,7 +247,7 @@ public class KMeansClustering {
 			documentNorm += Math.pow(currentDocumentWount.getCount()*tempIDF,2);
 			centroidNorm += Math.pow(currentCentroidWount.getCount()*tempIDF,2);
 		}
-		return dotProduct/Math.sqrt(documentNorm*centroidNorm);
+		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
 	
 	/************************* *************************/
