@@ -16,8 +16,8 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 
-	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
-//	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.toy.txt";
+	//	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
+	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.kos.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 
@@ -50,6 +50,7 @@ public class KMeansClustering {
 		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
 		this.numberOfWords = metadata.get(1);
+		//		System.out.println(data);
 
 		// Initialise other fields based on data.
 		this.previousMembership = new int[numberOfDocuments];
@@ -61,14 +62,24 @@ public class KMeansClustering {
 
 		// Initialise the k different means.
 		initialiseKMeans(k);
-		// run k-means clustering up to convergence
-		int iterationCounter = 0;
-		while (!this.hasConverged()) {
-			System.out.println("Clustering iteration "+ ++iterationCounter);
-			this.cluster(useAngleDistance);
-			this.recomputeCentroids();
+
+		// Run K-means clustering finitely many iterations. Use for testing only!
+		int maxIterations = 2;
+		for(int i = 0;i<maxIterations;++i) {
+			System.out.println("*** Iteration "+ (i+1) + " ***");
+			cluster(useAngleDistance);
+			recomputeCentroids();
 		}
-		// TODO : format output
+
+//		// Run K-means clustering up to convergence.
+//		int iterationCounter = 0;
+//		while (!this.hasConverged()) {
+//			System.out.println("*** Iteration "+ ++iterationCounter + " ***");
+//			cluster(useAngleDistance);
+//			recomputeCentroids();
+//		}
+
+		displayClusters(true);
 	}
 
 	/************************* *************************/
@@ -108,7 +119,6 @@ public class KMeansClustering {
 		}
 		br.close();
 		return ans;
-		// TODO FileNotFoundException
 	}
 
 	/************************* *************************/
@@ -120,12 +130,16 @@ public class KMeansClustering {
 	 * equally by document ID.
 	 */
 	private void initialiseKMeans(int k) {
-		System.out.print("Initializing "+k+" means...");
+		System.out.print("Initializing "+ k +" means...");
 		int d = numberOfDocuments / k;
 		for(int i=1;i<=k;++i) {
-			kMeans.add(new Centroid(i, data.get(d*k)));
+			kMeans.add(new Centroid(i, data.get(d*i)));
 		}
 		System.out.println(" done.");
+		System.out.println("-----------------------------");
+		//		for(int i=0;i<kMeans.size();++i) {
+		//			System.out.println(kMeans.get(i));
+		//		}
 	}
 
 	/************************* *************************/
@@ -136,11 +150,12 @@ public class KMeansClustering {
 	 * metric by default.
 	 */
 	private void cluster(boolean useAngleDistance) {
+		System.out.print("Clustering data... ");
 		double minDistance = Integer.MAX_VALUE;
 		double currentDistance = 0;
 		int closestCentroidID = -1;
 		int k = kMeans.size();
-		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
+		for (int currentDocumentID = 1; currentDocumentID <= numberOfDocuments; ++currentDocumentID) {
 			minDistance = Integer.MAX_VALUE;
 			for (int currentCentroidID = 1; currentCentroidID <= k; ++currentCentroidID) {
 				currentDistance = useAngleDistance ? getAngleDistance(currentDocumentID, currentCentroidID) : getJaccardDistance(currentDocumentID, currentCentroidID);
@@ -151,8 +166,12 @@ public class KMeansClustering {
 			}
 			previousMembership[currentDocumentID-1] = currentMembership[currentDocumentID-1];
 			currentMembership[currentDocumentID-1] = closestCentroidID;
-			
 		}
+		System.out.println("done!");
+		//		for(int i=0;i<numberOfDocuments;++i) {
+		//			System.out.print(currentMembership[i] + ",");
+		//		}
+		//		System.out.println();
 	}
 
 	/************************* *************************/
@@ -163,43 +182,31 @@ public class KMeansClustering {
 	 * TODO : Improve the implementation. Perhaps a customised WountList that supports addition?
 	 */
 	private void recomputeCentroids() {
-		System.out.println("Recomputing Centroids... ");
+		System.out.print("Recomputing centroids... ");
 		int k = kMeans.size();
 		Wount currentWount = new Wount(-1,-1);
 		int[] clusterSizes = new int[k];
 		int currentCentroidID = -1;
-		/*
-		 * Iterate over documents
-		 * Add the word counts of each document to the sum for the appropriate cluster
-		 * Each document contributes +1 to the size of its cluster
-		 * TODO : Is it better to make k passes of the membership array?
-		 */
-		// reset the coordinates for each centroid
+
+		// Reset the coordinates for each centroid
 		for (int i = 0; i < k; ++i) {
 			kMeans.get(i).setCoordinates(new ArrayList<Wount>());
 		}
 
-		// iterate over membership array and sum up coordinates per cluster. also keep size.
-		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
+		// Iterate over membership array and sum up coordinates per cluster. Also keep size.
+		for (int currentDocumentID = 1; currentDocumentID <= numberOfDocuments; ++currentDocumentID) {
 			currentCentroidID = currentMembership[currentDocumentID-1];
-//			System.out.println("Document "+currentDocumentID+" is in cluster "+currentCentroidID);
 			clusterSizes[currentCentroidID-1]++;
-//			System.out.println(" of size at least "+clusterSizes[currentCentroidID-1]);
-//			System.out.println("Cluster sum was "+kMeans.get(currentCentroidID-1).getCoordinates());
-//			System.out.println("Document word count is "+data.get(currentDocumentID));
 			kMeans.get(currentCentroidID-1).setCoordinates(addCoordinates(kMeans.get(currentCentroidID-1).getCoordinates(),data.get(currentDocumentID)));
-//			System.out.println("Cluster sum updated to) "+kMeans.get(currentCentroidID-1).getCoordinates());
 		}
 
-		// iterate over clusterID-1
+		// Normalise each centroid.
 		for (int i = 0; i < k; ++i) {
-			// iterate over coordinates of cluster i+1
-			for (int j = 0; j < kMeans.get(i).getCoordinatesSize(); ++j) {
-				// divide coordinates by cluster size
-				kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
-			}
+			kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
 		}
-		System.out.println("...done.");
+		System.out.println("done!");
+		System.out.println();
+		//		System.out.println(kMeans);
 	}
 
 	/************************* *************************/
@@ -210,10 +217,10 @@ public class KMeansClustering {
 	 * as a constant.
 	 */
 	private boolean hasConverged() {
-		System.out.println("Checking for convergence with threshold "+ACCEPTANCE_THRESHOLD);
+		//		System.out.println("Checking for convergence with threshold "+ACCEPTANCE_THRESHOLD);
 		int sameCount = 0;
 		for (int i=0;i<kMeans.size();++i) {
-			System.out.println(kMeans.get(i));
+			//			System.out.println(kMeans.get(i));
 		}
 		for(int i=0;i<numberOfDocuments;++i) {
 			if(previousMembership[i] == currentMembership[i]) {
@@ -362,47 +369,83 @@ public class KMeansClustering {
 	/************************* *************************/
 
 	/**
+	 * @description Displays elements in a cluster.
+	 */
+	private void displayClusters(boolean showClusterSizeOnly) {
+		List<List<Integer>> clusters = new ArrayList<List<Integer>>();
+
+		// Initialise k empty clusters.
+		for(int i=0;i<kMeans.size();++i) {
+			clusters.add(new ArrayList<Integer>());
+		}
+
+		// Populate clusters.
+		for(int i=0;i<currentMembership.length;++i) {
+			clusters.get(currentMembership[i]-1).add(i+1);
+		}
+
+		Iterator<List<Integer>> outputIter = clusters.iterator();
+		List<Integer> currCluster = null;
+		if(showClusterSizeOnly) {
+			System.out.println("Cluster sizes:");
+			while(outputIter.hasNext()) {
+				currCluster = outputIter.next();
+				System.out.print(currCluster.size() + ", ");
+			}
+			System.out.println();
+		} else {
+			System.out.println("Clusters:");
+			while(outputIter.hasNext()) {
+				currCluster = outputIter.next();
+				System.out.println(currCluster);
+			}
+		}
+	}
+
+	/************************* *************************/
+
+	/**
 	 * @throws IOException 
 	 * @description Main function for local testing.
 	 */
 	public static void main(String[] args) throws IOException {
-		List<Wount> a = new ArrayList<Wount>();
-		a.add(new Wount(1, 3));
-		a.add(new Wount(3, 1));
-		a.add(new Wount(5, 2));
-		a.add(new Wount(6, 2));
-		a.add(new Wount(10, 1));
-		a.add(new Wount(14, 3));
-		a.add(new Wount(17, 5));
-		a.add(new Wount(18, 2));
+//		List<Wount> a = new ArrayList<Wount>();
+//		a.add(new Wount(1, 3));
+//		a.add(new Wount(3, 1));
+//		a.add(new Wount(5, 2));
+//		a.add(new Wount(6, 2));
+//		a.add(new Wount(10, 1));
+//		a.add(new Wount(14, 3));
+//		a.add(new Wount(17, 5));
+//		a.add(new Wount(18, 2));
+//
+//		List<Wount> b = new ArrayList<Wount>();
+//		b.add(new Wount(2, 1));
+//		b.add(new Wount(3, 2));
+//		b.add(new Wount(6, 4));
+//		b.add(new Wount(7, 1));
+//		b.add(new Wount(12, 1));
+//		b.add(new Wount(14, 2));
+//		b.add(new Wount(15, 3));
+//		b.add(new Wount(18, 1));
 
-		List<Wount> b = new ArrayList<Wount>();
-		b.add(new Wount(2, 1));
-		b.add(new Wount(3, 2));
-		b.add(new Wount(6, 4));
-		b.add(new Wount(7, 1));
-		b.add(new Wount(12, 1));
-		b.add(new Wount(14, 2));
-		b.add(new Wount(15, 3));
-		b.add(new Wount(18, 1));
-
-		KMeansClustering km = new KMeansClustering(2, false);
-		System.out.println(km.addCoordinates(a, b));
-		for (int c = 0; c < km.kMeans.size() ; c++) {
-			System.out.println("Mean "+(c+1));
-			for (int i = 0; i < km.kMeans.get(c).getCoordinatesSize(); ++i) {
-				System.out.print(km.kMeans.get(c).getCoordinates().get(i).getId() + " ");
-				if ((i + 1) % 20 == 0) {
-					System.out.println();
-				}
-			}
-			for (int i = 1; i <= km.numberOfDocuments; ++i) {
-				System.out.println("\n" + km.getJaccardDistance(i, c+1));
-//				System.out.println("\n" + km.getAngleDistance(i, c+1));
-			} 
-		}
-		for (int d = 1; d <= km.numberOfDocuments; ++d) {
-			System.out.println(km.data.get(d));
-		}
+		KMeansClustering km = new KMeansClustering(10, false);
+		//		System.out.println(km.addCoordinates(a, b));
+		//		for (int c = 0; c < km.kMeans.size() ; c++) {
+		//			System.out.println("Mean "+(c+1));
+		//			for (int i = 0; i < km.kMeans.get(c).getCoordinatesSize(); ++i) {
+		//				System.out.print(km.kMeans.get(c).getCoordinates().get(i).getId() + " ");
+		//				if ((i + 1) % 20 == 0) {
+		//					System.out.println();
+		//				}
+		//			}
+		//			for (int i = 1; i <= km.numberOfDocuments; ++i) {
+		//				System.out.println("\n" + km.getJaccardDistance(i, c+1));
+		////				System.out.println("\n" + km.getAngleDistance(i, c+1));
+		//			} 
+		//		}
+		////		for (int d = 1; d <= km.numberOfDocuments; ++d) {
+		////			System.out.println(km.data.get(d));
+		////		}
 	}
 }
