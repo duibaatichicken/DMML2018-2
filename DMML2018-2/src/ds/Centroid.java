@@ -56,4 +56,8 @@ public class Centroid {
 	public int getCoordinatesSize() {
 		return this.coordinates.size();
 	}
+	
+	public String toString() {
+		return (this.id+": "+this.coordinates);
+	}
 }
