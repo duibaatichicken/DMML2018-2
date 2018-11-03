@@ -46,25 +46,25 @@ public class KMeansClustering {
 		 * metadata data is as follows. It is a list of three integers,
 		 * (#documents, #words, #nonzero entries)
 		 */
-//		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
-//		this.numberOfDocuments = metadata.get(0);
-//		this.numberOfWords = metadata.get(1);
-//		
-//		// Initialise other fields based on data.
-//		this.previousMembership = new int[numberOfDocuments];
-//		this.currentMembership = new int[numberOfDocuments];
-//		for(int i=0;i<numberOfDocuments;++i) {
-//			this.previousMembership[i] = -1;
-//			this.currentMembership[i] = 0;
-//		}
-//		
-//		// Initialise the k different means.
-//		initialiseKMeans(k);
-//		// run k-means clustering up to convergence
-//		while (!this.hasConverged()) {
-//			this.cluster(useAngleDistance);
-//			this.recomputeCentroids();
-//		}
+		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
+		this.numberOfDocuments = metadata.get(0);
+		this.numberOfWords = metadata.get(1);
+		
+		// Initialise other fields based on data.
+		this.previousMembership = new int[numberOfDocuments];
+		this.currentMembership = new int[numberOfDocuments];
+		for(int i=0;i<numberOfDocuments;++i) {
+			this.previousMembership[i] = -1;
+			this.currentMembership[i] = 0;
+		}
+		
+		// Initialise the k different means.
+		initialiseKMeans(k);
+		// run k-means clustering up to convergence
+		while (!this.hasConverged()) {
+			this.cluster(useAngleDistance);
+			this.recomputeCentroids();
+		}
 		// TODO : format output
 	}
 	
