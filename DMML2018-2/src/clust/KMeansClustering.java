@@ -260,27 +260,39 @@ public class KMeansClustering {
 	 * 'bag of words' to 'set of words'.
 	 */
 	private double getJaccardDistance(int documentId, int centroidId) {
-		int symmetricDifference = 0;
-		int union = 0;
-		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		int intersection = 0;
 		Iterator<Wount> documentIter = data.get(documentId).iterator();
-		Wount currentDocumentWount;
-		Wount currentCentroidWount;
-		while(centroidIter.hasNext() && documentIter.hasNext() ) {
-			currentDocumentWount = documentIter.next();
-			currentCentroidWount = centroidIter.next();
-			while (currentDocumentWount.getId() < currentCentroidWount.getId()) {
-				symmetricDifference++;
-				union++;
-				currentDocumentWount = documentIter.next();
+		Iterator<Wount> centroidIter = kMeans.get(centroidId).getCoordinates().iterator();
+		int documentCurrentWordId = Integer.MIN_VALUE;
+		int centroidCurrentWordId = Integer.MIN_VALUE;
+		
+		// Get cardinality of intersection
+		while(documentIter.hasNext() || centroidIter.hasNext()) {
+			if(documentCurrentWordId == centroidCurrentWordId) {
+				if(documentCurrentWordId != Integer.MIN_VALUE) {
+					intersection++;
+				}
+				documentCurrentWordId = documentIter.hasNext() ? documentIter.next().getId() : Integer.MAX_VALUE;
+				centroidCurrentWordId = centroidIter.hasNext() ? centroidIter.next().getId() : Integer.MAX_VALUE;
+			} else if(documentCurrentWordId < centroidCurrentWordId) {
+				documentCurrentWordId = documentIter.hasNext() ? documentIter.next().getId() : Integer.MAX_VALUE;
+			} else { // documentCurrentWordId > centroidCurrentWordId
+				centroidCurrentWordId = centroidIter.hasNext() ? centroidIter.next().getId() : Integer.MAX_VALUE;
 			}
-			while (currentDocumentWount.getId() > currentCentroidWount.getId()) {
-				symmetricDifference++;
-				union++;
-				currentCentroidWount = centroidIter.next();
-			}
-			union++;
 		}
+		
+		int union = data.get(documentId).size() + kMeans.get(centroidId).getCoordinates().size() - intersection;
+		int symmetricDifference = union - intersection;
+//		System.out.println(intersection + ", " + union);
 		return (double)symmetricDifference/(double)union;
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Main function for local testing.
+	 */
+	public static void main(String[] args) {
+		
 	}
 }
