@@ -16,8 +16,8 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 
-	//	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
-	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.toy.txt";
+	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
+//	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.toy.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 
@@ -62,7 +62,9 @@ public class KMeansClustering {
 		// Initialise the k different means.
 		initialiseKMeans(k);
 		// run k-means clustering up to convergence
+		int iterationCounter = 0;
 		while (!this.hasConverged()) {
+			System.out.println("Clustering iteration "+ ++iterationCounter);
 			this.cluster(useAngleDistance);
 			this.recomputeCentroids();
 		}
@@ -118,10 +120,12 @@ public class KMeansClustering {
 	 * equally by document ID.
 	 */
 	private void initialiseKMeans(int k) {
+		System.out.print("Initializing "+k+" means...");
 		int d = numberOfDocuments / k;
 		for(int i=1;i<=k;++i) {
 			kMeans.add(new Centroid(i, data.get(d*k)));
 		}
+		System.out.println(" done.");
 	}
 
 	/************************* *************************/
@@ -132,20 +136,22 @@ public class KMeansClustering {
 	 * metric by default.
 	 */
 	private void cluster(boolean useAngleDistance) {
-		double maxDistance = 0;
+		double minDistance = Integer.MAX_VALUE;
 		double currentDistance = 0;
 		int closestCentroidID = -1;
 		int k = kMeans.size();
 		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
+			minDistance = Integer.MAX_VALUE;
 			for (int currentCentroidID = 1; currentCentroidID <= k; ++currentCentroidID) {
 				currentDistance = useAngleDistance ? getAngleDistance(currentDocumentID, currentCentroidID) : getJaccardDistance(currentDocumentID, currentCentroidID);
-				if (maxDistance < currentDistance) {
+				if (minDistance > currentDistance) {
 					closestCentroidID = currentCentroidID;
-					maxDistance = currentDistance;
+					minDistance = currentDistance;
 				}
 			}
 			previousMembership[currentDocumentID-1] = currentMembership[currentDocumentID-1];
 			currentMembership[currentDocumentID-1] = closestCentroidID;
+			
 		}
 	}
 
@@ -157,6 +163,7 @@ public class KMeansClustering {
 	 * TODO : Improve the implementation. Perhaps a customised WountList that supports addition?
 	 */
 	private void recomputeCentroids() {
+		System.out.println("Recomputing Centroids... ");
 		int k = kMeans.size();
 		Wount currentWount = new Wount(-1,-1);
 		int[] clusterSizes = new int[k];
@@ -175,8 +182,13 @@ public class KMeansClustering {
 		// iterate over membership array and sum up coordinates per cluster. also keep size.
 		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
 			currentCentroidID = currentMembership[currentDocumentID-1];
+//			System.out.println("Document "+currentDocumentID+" is in cluster "+currentCentroidID);
 			clusterSizes[currentCentroidID-1]++;
+//			System.out.println(" of size at least "+clusterSizes[currentCentroidID-1]);
+//			System.out.println("Cluster sum was "+kMeans.get(currentCentroidID-1).getCoordinates());
+//			System.out.println("Document word count is "+data.get(currentDocumentID));
 			kMeans.get(currentCentroidID-1).setCoordinates(addCoordinates(kMeans.get(currentCentroidID-1).getCoordinates(),data.get(currentDocumentID)));
+//			System.out.println("Cluster sum updated to) "+kMeans.get(currentCentroidID-1).getCoordinates());
 		}
 
 		// iterate over clusterID-1
@@ -187,6 +199,7 @@ public class KMeansClustering {
 				kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
 			}
 		}
+		System.out.println("...done.");
 	}
 
 	/************************* *************************/
@@ -197,7 +210,11 @@ public class KMeansClustering {
 	 * as a constant.
 	 */
 	private boolean hasConverged() {
+		System.out.println("Checking for convergence with threshold "+ACCEPTANCE_THRESHOLD);
 		int sameCount = 0;
+		for (int i=0;i<kMeans.size();++i) {
+			System.out.println(kMeans.get(i));
+		}
 		for(int i=0;i<numberOfDocuments;++i) {
 			if(previousMembership[i] == currentMembership[i]) {
 				sameCount++;
@@ -217,25 +234,46 @@ public class KMeansClustering {
 		double documentNorm = 0;
 		double centroidNorm = 0;
 		double tempIDF = 0;
-		Iterator<Wount> centroidIter = kMeans.get(centroidId-1).getCoordinates().iterator();
-		Iterator<Wount> documentIter = data.get(documentId).iterator();
-		Wount currentDocumentWount;
-		Wount currentCentroidWount;
-		while(centroidIter.hasNext() && documentIter.hasNext() ) {
-			currentDocumentWount = documentIter.next();
-			currentCentroidWount = centroidIter.next();
-			while (currentDocumentWount.getId() < currentCentroidWount.getId()) {
-				currentDocumentWount = documentIter.next();
+		int documentCounter = 0;
+		int centroidCounter = 0;
+		int documentSize = data.get(documentId).size();
+		int centroidSize = kMeans.get(centroidId-1).getCoordinatesSize();
+		int currentCentroidWord = 0;
+		int currentDocumentWord = 0;
+		while(true) {
+			if(documentCounter >= documentSize) {
+				if(centroidCounter >= centroidSize) {
+					break;
+				} else {
+					currentCentroidWord = kMeans.get(centroidId-1).getCoordinates().get(centroidCounter).getId();
+					tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentCentroidWord-1));
+					centroidNorm += Math.pow(kMeans.get(centroidId-1).getCoordinates().get(centroidCounter++).getCount()*tempIDF, 2);
+				}
+			} else {
+				if(centroidCounter >= centroidSize) {
+					currentDocumentWord = data.get(documentId).get(documentCounter).getId();
+					tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentDocumentWord-1));
+					documentNorm += Math.pow(data.get(documentId).get(documentCounter++).getCount()*tempIDF,2);
+				} else {
+					currentCentroidWord = kMeans.get(centroidId-1).getCoordinates().get(centroidCounter).getId();
+					currentDocumentWord = data.get(documentId).get(documentCounter).getId();
+					if(currentDocumentWord < currentCentroidWord) {
+						tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentDocumentWord-1));
+						documentNorm += Math.pow(data.get(documentId).get(documentCounter++).getCount()*tempIDF,2);
+					} else if(currentDocumentWord > currentCentroidWord) {
+						tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentCentroidWord-1));
+						centroidNorm += Math.pow(kMeans.get(centroidId-1).getCoordinates().get(centroidCounter++).getCount()*tempIDF, 2);
+					} else { // if(currentDocumentWord == currentCentroidWord) {
+						tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentCentroidWord-1));
+						// equivalently, tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentDocumentWord))
+						dotProduct += data.get(documentId).get(documentCounter).getCount()*kMeans.get(centroidId-1).getCoordinates().get(centroidCounter).getCount()*Math.pow(tempIDF,2);
+						documentNorm += Math.pow(data.get(documentId).get(documentCounter++).getCount()*tempIDF,2);
+						centroidNorm += Math.pow(kMeans.get(centroidId-1).getCoordinates().get(centroidCounter++).getCount()*tempIDF, 2);
+					}
+				}
 			}
-			while (currentDocumentWount.getId() > currentCentroidWount.getId()) {
-				currentCentroidWount = centroidIter.next();
-			}
-			// Set tf-idf of the current word w.r.t document tf and centroid tf
-			tempIDF = Math.log(this.numberOfDocuments) - Math.log(documentFrequencies.get(currentDocumentWount.getId()));
-			dotProduct += currentDocumentWount.getCount()*currentCentroidWount.getCount()*Math.pow(tempIDF,2);
-			documentNorm += Math.pow(currentDocumentWount.getCount()*tempIDF,2);
-			centroidNorm += Math.pow(currentCentroidWount.getCount()*tempIDF,2);
 		}
+		System.out.print(dotProduct+" "+Math.sqrt(documentNorm*centroidNorm)+" ");
 		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
 
@@ -252,7 +290,7 @@ public class KMeansClustering {
 		int intersection = 0;
 		int dataCounter = 0, centroidCounter = 0;
 		int dataSize = data.get(documentId).size();
-		int centroidSize = kMeans.get(centroidId-1).getCoordinates().size();
+		int centroidSize = kMeans.get(centroidId-1).getCoordinatesSize();
 
 		// Calculate cardinality of intersection.
 		while(true) {
@@ -348,16 +386,23 @@ public class KMeansClustering {
 		b.add(new Wount(15, 3));
 		b.add(new Wount(18, 1));
 
-		KMeansClustering km = new KMeansClustering(1, false);
-		//		System.out.println(km.addCoordinates(a, b));
-		for (int i = 0; i < km.kMeans.get(0).getCoordinatesSize(); ++i) {
-			System.out.print(km.kMeans.get(0).getCoordinates().get(i).getId()+" ");
-			if ((i+1) % 20 == 0) {
-				System.out.println();
+		KMeansClustering km = new KMeansClustering(2, false);
+		System.out.println(km.addCoordinates(a, b));
+		for (int c = 0; c < km.kMeans.size() ; c++) {
+			System.out.println("Mean "+(c+1));
+			for (int i = 0; i < km.kMeans.get(c).getCoordinatesSize(); ++i) {
+				System.out.print(km.kMeans.get(c).getCoordinates().get(i).getId() + " ");
+				if ((i + 1) % 20 == 0) {
+					System.out.println();
+				}
 			}
+			for (int i = 1; i <= km.numberOfDocuments; ++i) {
+				System.out.println("\n" + km.getJaccardDistance(i, c+1));
+//				System.out.println("\n" + km.getAngleDistance(i, c+1));
+			} 
 		}
-		for (int i = 1; i <= 5; ++i) {
-			System.out.println("\n"+km.getJaccardDistance(i, 1));
+		for (int d = 1; d <= km.numberOfDocuments; ++d) {
+			System.out.println(km.data.get(d));
 		}
 	}
 }
