@@ -161,43 +161,34 @@ public class KMeansClustering {
 	private void recomputeCentroids() {
 		int k = kMeans.size();
 		Wount currentWount = new Wount(-1,-1);
-		double[][] currentSums = new double[k][numberOfWords];
-		int[] currentSizes = new int[k];
-		int currentDocumentID = -1;
+		int[] clusterSizes = new int[k];
+		int currentCentroidID = -1;
 		/*
 		 * Iterate over documents
 		 * Add the word counts of each document to the sum for the appropriate cluster
 		 * Each document contributes +1 to the size of its cluster
 		 * TODO : Is it better to make k passes of the membership array?
 		 */
-		Iterator<Integer> documentIter = data.keySet().iterator();
-		while (documentIter.hasNext()) {
-			currentDocumentID = documentIter.next();
-			Iterator<Wount> wountIter = data.get(currentDocumentID).iterator();
-			while (wountIter.hasNext()) {
-				currentWount = wountIter.next();
-				currentSums[currentMembership[currentDocumentID]][currentWount.getId()] += currentWount.getCount();
-			}
-			currentSizes[currentMembership[currentDocumentID]]++;
-		}
-		/*
-		 * Iterate over clusters
-		 * For each word, contribute a size-normalised wount to cluster coordinates
-		 * if that wount is nonzero in the cluster
-		 */
-		Iterator<Centroid> centroidIter = kMeans.iterator();
-		Centroid currentCentroid = new Centroid(-1, new ArrayList<Wount>());
-		while (centroidIter.hasNext()) {
-			currentCentroid = centroidIter.next();
-			List<Wount> currentMean = new ArrayList<Wount>();
-			for (int wordID = 1; wordID <= numberOfWords; ++wordID) {
-				if (currentSums[currentCentroid.getId()][wordID] > 0) {
-					currentMean.add(new Wount(wordID, currentSums[currentCentroid.getId()][wordID] / currentSizes[currentCentroid.getId()]));
-				}
-			}
-			kMeans.get(currentCentroid.getId()).setCoordinates(currentMean);
-		}
-		// TODO : Add code to recompute centroids from the currentMembership array.
+		// reset the coordinates for each centroid
+		 for (int i = 1; i <= k; ++i) {
+			 kMeans.get(i).setCoordinates(new ArrayList<Wount>());
+		 }
+		 
+		 // iterate over membership array and sum up coordinates per cluster. also keep size.
+		 for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
+			 currentCentroidID = currentMembership[currentDocumentID-1];
+			 clusterSizes[currentCentroidID-1]++;
+			 kMeans.get(currentCentroidID-1).setCoordinates(addCoordinates(kMeans.get(currentCentroidID-1).getCoordinates(),data.get(currentDocumentID)));
+		 }
+		 
+		 // iterate over clusterID-1
+		 for (int i = 0; i < k; ++i) {
+			 // iterate over coordinates of cluster i+1
+			 for (int j = 0; j < kMeans.get(i).getCoordinatesSize(); ++j) {
+				 // divide coordinates by cluster size
+				 kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
+			 }
+		 }
 	}
 	
 	/************************* *************************/

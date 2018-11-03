@@ -38,4 +38,22 @@ public class Centroid {
 	 * @description Setter functions.
 	 */
 	public void setCoordinates(List<Wount> coordinates) { this.coordinates = coordinates; }
+	
+	/************************* *************************/
+		
+	/**
+	 * @description divides the coordinates uniformly by the given constant
+	 */
+	public void divideCoordinates(double constant) {
+		for (int i = 0; i < this.coordinates.size(); ++i) {
+			coordinates.get(i).setCount(coordinates.get(i).getCount() / constant);
+		}
+	}
+	
+	/**
+	 * @description returns the number of nonzero wounts
+	 */
+	public int getCoordinatesSize() {
+		return this.coordinates.size();
+	}
 }
