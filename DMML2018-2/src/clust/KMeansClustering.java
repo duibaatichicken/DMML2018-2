@@ -15,22 +15,23 @@ import ds.Wount;
 
 @SuppressWarnings("unused")
 public class KMeansClustering {
-	
-	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
+
+	//	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
+	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.toy.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
-	
+
 	private int numberOfDocuments;
 	private int numberOfWords;
-	
+
 	private Map<Integer, List<Wount>> data;
 	private List<Centroid> kMeans;
 	private HashMap<Integer, Integer> documentFrequencies;
 	private int[] previousMembership;
 	private int[] currentMembership;
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * Constructor
 	 * @throws IOException 
@@ -39,7 +40,7 @@ public class KMeansClustering {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
 		this.documentFrequencies = new HashMap<Integer, Integer>();
-		
+
 		/**
 		 * Use the documents filepath to read the file and store it
 		 * for quick access. Also store metadata. The format of the
@@ -49,7 +50,7 @@ public class KMeansClustering {
 		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
 		this.numberOfWords = metadata.get(1);
-		
+
 		// Initialise other fields based on data.
 		this.previousMembership = new int[numberOfDocuments];
 		this.currentMembership = new int[numberOfDocuments];
@@ -57,7 +58,7 @@ public class KMeansClustering {
 			this.previousMembership[i] = -1;
 			this.currentMembership[i] = 0;
 		}
-		
+
 		// Initialise the k different means.
 		initialiseKMeans(k);
 		// run k-means clustering up to convergence
@@ -67,9 +68,9 @@ public class KMeansClustering {
 		}
 		// TODO : format output
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @throws IOException 
 	 * @description Read data from the specified filepath. It
@@ -107,9 +108,9 @@ public class KMeansClustering {
 		return ans;
 		// TODO FileNotFoundException
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Initially decide on k points to be
 	 * the centroids for starting the k-means process.
@@ -122,9 +123,9 @@ public class KMeansClustering {
 			kMeans.add(new Centroid(i, data.get(d*k)));
 		}
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Cluster given set of points based on
 	 * given centroids and given metric. Uses Jaccard
@@ -147,9 +148,9 @@ public class KMeansClustering {
 			currentMembership[currentDocumentID-1] = closestCentroidID;
 		}
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Recompute centroids by taking average
 	 * of formed clusters.
@@ -167,29 +168,29 @@ public class KMeansClustering {
 		 * TODO : Is it better to make k passes of the membership array?
 		 */
 		// reset the coordinates for each centroid
-		 for (int i = 0; i < k; ++i) {
-			 kMeans.get(i).setCoordinates(new ArrayList<Wount>());
-		 }
-		 
-		 // iterate over membership array and sum up coordinates per cluster. also keep size.
-		 for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
-			 currentCentroidID = currentMembership[currentDocumentID-1];
-			 clusterSizes[currentCentroidID-1]++;
-			 kMeans.get(currentCentroidID-1).setCoordinates(addCoordinates(kMeans.get(currentCentroidID-1).getCoordinates(),data.get(currentDocumentID)));
-		 }
-		 
-		 // iterate over clusterID-1
-		 for (int i = 0; i < k; ++i) {
-			 // iterate over coordinates of cluster i+1
-			 for (int j = 0; j < kMeans.get(i).getCoordinatesSize(); ++j) {
-				 // divide coordinates by cluster size
-				 kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
-			 }
-		 }
+		for (int i = 0; i < k; ++i) {
+			kMeans.get(i).setCoordinates(new ArrayList<Wount>());
+		}
+
+		// iterate over membership array and sum up coordinates per cluster. also keep size.
+		for (int currentDocumentID = 1; currentDocumentID <= this.numberOfDocuments; ++currentDocumentID) {
+			currentCentroidID = currentMembership[currentDocumentID-1];
+			clusterSizes[currentCentroidID-1]++;
+			kMeans.get(currentCentroidID-1).setCoordinates(addCoordinates(kMeans.get(currentCentroidID-1).getCoordinates(),data.get(currentDocumentID)));
+		}
+
+		// iterate over clusterID-1
+		for (int i = 0; i < k; ++i) {
+			// iterate over coordinates of cluster i+1
+			for (int j = 0; j < kMeans.get(i).getCoordinatesSize(); ++j) {
+				// divide coordinates by cluster size
+				kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
+			}
+		}
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Check whether the clustering method has
 	 * converged to its final point. Uses a threshold defined
@@ -204,9 +205,9 @@ public class KMeansClustering {
 		}
 		return (sameCount >= ACCEPTANCE_THRESHOLD * numberOfDocuments);
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Find the angle between two documents in
 	 * the vector model using tf-idf weights for words.
@@ -237,9 +238,9 @@ public class KMeansClustering {
 		}
 		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Find the Jaccard distance between a document
 	 * and a centroid, both given by ID. Jaccard distance is
@@ -249,34 +250,45 @@ public class KMeansClustering {
 	 */
 	private double getJaccardDistance(int documentId, int centroidId) {
 		int intersection = 0;
-		Iterator<Wount> documentIter = data.get(documentId).iterator();
-		Iterator<Wount> centroidIter = kMeans.get(centroidId-1).getCoordinates().iterator();
-		int documentCurrentWordId = Integer.MIN_VALUE;
-		int centroidCurrentWordId = Integer.MIN_VALUE;
-		
-		// Get cardinality of intersection
-		while(documentIter.hasNext() || centroidIter.hasNext()) {
-			if(documentCurrentWordId == centroidCurrentWordId) {
-				if(documentCurrentWordId != Integer.MIN_VALUE) {
-					intersection++;
+		int dataCounter = 0, centroidCounter = 0;
+		int dataSize = data.get(documentId).size();
+		int centroidSize = kMeans.get(centroidId-1).getCoordinates().size();
+
+		// Calculate cardinality of intersection.
+		while(true) {
+			if(dataCounter >= dataSize) {
+				if(centroidCounter >= centroidSize) {
+					break;
+				} else {
+					centroidCounter++;
 				}
-				documentCurrentWordId = documentIter.hasNext() ? documentIter.next().getId() : Integer.MAX_VALUE;
-				centroidCurrentWordId = centroidIter.hasNext() ? centroidIter.next().getId() : Integer.MAX_VALUE;
-			} else if(documentCurrentWordId < centroidCurrentWordId) {
-				documentCurrentWordId = documentIter.hasNext() ? documentIter.next().getId() : Integer.MAX_VALUE;
-			} else { // documentCurrentWordId > centroidCurrentWordId
-				centroidCurrentWordId = centroidIter.hasNext() ? centroidIter.next().getId() : Integer.MAX_VALUE;
+			} else {
+				if(centroidCounter >= centroidSize) {
+					dataCounter++;
+				} else {
+					if(data.get(documentId).get(dataCounter).getId() < kMeans.get(centroidId-1).getCoordinates().get(centroidCounter).getId()) {
+						dataCounter++;
+					} else if(data.get(documentId).get(dataCounter).getId() > kMeans.get(centroidId-1).getCoordinates().get(centroidCounter).getId()) {
+						centroidCounter++;
+					} else { // if(data.get(documentId).get(dataCounter).getId() < kMeans.get(centroidId).getCoordinates().get(centroidCounter).getId()) {
+						intersection++;
+						dataCounter++;
+						centroidCounter++;
+					}
+				}
 			}
 		}
-		
+
+		// Calculate cardinality of union and symmetric difference.
 		int union = data.get(documentId).size() + kMeans.get(centroidId-1).getCoordinates().size() - intersection;
 		int symmetricDifference = union - intersection;
-//		System.out.println(intersection + ", " + union);
+		//	System.out.println();
+		//	System.out.println(intersection + ", " + union);
 		return (double)symmetricDifference/(double)union;
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @description Adds two vectors to obtain the sum vector
 	 * with coordinates sorted in increasing order.
@@ -284,7 +296,7 @@ public class KMeansClustering {
 	private List<Wount> addCoordinates(List<Wount> A, List<Wount> B) {
 		List<Wount> ans = new ArrayList<Wount>();
 		int aIndex = 0, bIndex = 0;
-		
+
 		while(true) {
 			if(aIndex >= A.size()) {
 				if(bIndex >= B.size()) {
@@ -306,12 +318,11 @@ public class KMeansClustering {
 				}
 			}
 		}
-		
 		return ans;
 	}
-	
+
 	/************************* *************************/
-	
+
 	/**
 	 * @throws IOException 
 	 * @description Main function for local testing.
@@ -338,7 +349,7 @@ public class KMeansClustering {
 		b.add(new Wount(18, 1));
 
 		KMeansClustering km = new KMeansClustering(1, false);
-//		System.out.println(km.addCoordinates(a, b));
+		//		System.out.println(km.addCoordinates(a, b));
 		for (int i = 0; i < km.kMeans.get(0).getCoordinatesSize(); ++i) {
 			System.out.print(km.kMeans.get(0).getCoordinates().get(i).getId()+" ");
 			if ((i+1) % 20 == 0) {
