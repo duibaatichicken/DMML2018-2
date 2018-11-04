@@ -16,8 +16,8 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 
-	//	private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
-	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.kos.txt";
+		private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
+//	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.kos.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 
@@ -26,7 +26,7 @@ public class KMeansClustering {
 
 	private Map<Integer, List<Wount>> data;
 	private List<Centroid> kMeans;
-	private HashMap<Integer, Integer> documentFrequencies;
+	private List<Integer> documentFrequencies;
 	private int[] previousMembership;
 	private int[] currentMembership;
 
@@ -39,7 +39,7 @@ public class KMeansClustering {
 	public KMeansClustering(int k, boolean useAngleDistance) throws IOException {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
-		this.documentFrequencies = new HashMap<Integer, Integer>();
+		this.documentFrequencies = new ArrayList<Integer>();
 
 		/**
 		 * Use the documents filepath to read the file and store it
@@ -59,27 +59,30 @@ public class KMeansClustering {
 			this.previousMembership[i] = -1;
 			this.currentMembership[i] = 0;
 		}
+		
+		// testing code
+		System.out.println("Document frequencies:\n"+this.documentFrequencies);
 
 		// Initialise the k different means.
 		initialiseKMeans(k);
 
 		// Run K-means clustering finitely many iterations. Use for testing only!
-		int maxIterations = 2;
-		for(int i = 0;i<maxIterations;++i) {
-			System.out.println("*** Iteration "+ (i+1) + " ***");
-			cluster(useAngleDistance);
-			recomputeCentroids();
-		}
-
-//		// Run K-means clustering up to convergence.
-//		int iterationCounter = 0;
-//		while (!this.hasConverged()) {
-//			System.out.println("*** Iteration "+ ++iterationCounter + " ***");
+//		int maxIterations = 2;
+//		for(int i = 0;i<maxIterations;++i) {
+//			System.out.println("*** Iteration "+ (i+1) + " ***");
 //			cluster(useAngleDistance);
 //			recomputeCentroids();
 //		}
 
-		displayClusters(true);
+//		// Run K-means clustering up to convergence.
+		int iterationCounter = 0;
+		while (!this.hasConverged()) {
+			System.out.println("*** Iteration "+ ++iterationCounter + " ***");
+			cluster(useAngleDistance);
+			recomputeCentroids();
+		}
+
+		displayClusters(false);
 	}
 
 	/************************* *************************/
@@ -112,9 +115,17 @@ public class KMeansClustering {
 				}
 				currWordId = Integer.parseInt(tmpArray[1]);
 				data.get(currDocId).add(new Wount(currWordId, Double.parseDouble(tmpArray[2])));
-				documentFrequencies.put(currWordId,documentFrequencies.getOrDefault(currWordId,0)+1);
+				documentFrequencies.set(currWordId-1, documentFrequencies.get(currWordId-1)+1);
 			} else { // Return metadata to store separately.
 				ans.add(Integer.parseInt(tmpArray[0]));
+				try {
+					for (int i = 0; i < ans.get(1); ++i) {
+						documentFrequencies.add(0);
+					}
+				} catch (IndexOutOfBoundsException e) {
+					// pass
+				}
+					
 			}
 		}
 		br.close();
@@ -280,9 +291,18 @@ public class KMeansClustering {
 				}
 			}
 		}
-		System.out.print(dotProduct+" "+Math.sqrt(documentNorm*centroidNorm)+" ");
+//		System.out.print(dotProduct+" "+Math.sqrt(documentNorm*centroidNorm)+" ");
 		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
+	
+//	/************************* *************************/
+//		
+//	/**
+//	 * @description computes IDF of given word based on data
+//	 */
+//	private double computeIDF(int wordID) {
+//		
+//	}
 
 	/************************* *************************/
 
@@ -429,7 +449,7 @@ public class KMeansClustering {
 //		b.add(new Wount(15, 3));
 //		b.add(new Wount(18, 1));
 
-		KMeansClustering km = new KMeansClustering(10, false);
+		KMeansClustering km = new KMeansClustering(2, true);
 		//		System.out.println(km.addCoordinates(a, b));
 		//		for (int c = 0; c < km.kMeans.size() ; c++) {
 		//			System.out.println("Mean "+(c+1));
