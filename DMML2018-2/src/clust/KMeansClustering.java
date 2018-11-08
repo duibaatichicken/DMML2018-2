@@ -450,8 +450,8 @@ public class KMeansClustering {
 		//		b.add(new Wount(15, 3));
 		//		b.add(new Wount(18, 1));
 
-		//		KMeansClustering km = new KMeansClustering(2, true);
-		System.out.println(System.getProperty("os.name"));
+		KMeansClustering km = new KMeansClustering(2, false);
+//		System.out.println(System.getProperty("os.name"));
 		//		System.out.println(km.addCoordinates(a, b));
 		//		for (int c = 0; c < km.kMeans.size() ; c++) {
 		//			System.out.println("Mean "+(c+1));
