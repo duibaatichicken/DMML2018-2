@@ -16,8 +16,10 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 
-		private static final String DOCUMENTS_FILEPATH = "C:/Users/Ankita Sarkar/git/DMML2018-2/DMML2018-2/datasets/docword.toy.txt";
-//	private static final String DOCUMENTS_FILEPATH = "/Users/sahil/Documents/CMI/Assignments/DMML/docword.kos.txt";
+	private static final String TOY_DATASET_FILEPATH = "datasets/docword.toy.txt";
+	private static final String KOS_DATASET_FILEPATH = "datasets/docword.kos.txt";
+	private static final String NIPS_DATASET_FILEPATH = "datasets/docword.nips.txt";
+	private static final String ENRON_DATASET_FILEPATH = "datasets/docword.enron.txt";
 	private static final String VOCABULARY_FILEPATH = "";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 
@@ -47,7 +49,7 @@ public class KMeansClustering {
 		 * metadata data is as follows. It is a list of three integers,
 		 * (#documents, #words, #nonzero entries)
 		 */
-		List<Integer> metadata = readData(DOCUMENTS_FILEPATH);
+		List<Integer> metadata = readData(TOY_DATASET_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
 		this.numberOfWords = metadata.get(1);
 		//		System.out.println(data);
@@ -59,22 +61,22 @@ public class KMeansClustering {
 			this.previousMembership[i] = -1;
 			this.currentMembership[i] = 0;
 		}
-		
+
 		// testing code
-//		System.out.println("Document frequencies:\n"+this.documentFrequencies);
+		//		System.out.println("Document frequencies:\n"+this.documentFrequencies);
 
 		// Initialise the k different means.
 		initialiseKMeans(k);
 
 		// Run K-means clustering finitely many iterations. Use for testing only!
-//		int maxIterations = 2;
-//		for(int i = 0;i<maxIterations;++i) {
-//			System.out.println("*** Iteration "+ (i+1) + " ***");
-//			cluster(useAngleDistance);
-//			recomputeCentroids();
-//		}
+		//		int maxIterations = 2;
+		//		for(int i = 0;i<maxIterations;++i) {
+		//			System.out.println("*** Iteration "+ (i+1) + " ***");
+		//			cluster(useAngleDistance);
+		//			recomputeCentroids();
+		//		}
 
-//		// Run K-means clustering up to convergence.
+		//		// Run K-means clustering up to convergence.
 		int iterationCounter = 0;
 		while (!this.hasConverged()) {
 			System.out.println("*** Iteration "+ ++iterationCounter + " ***");
@@ -125,7 +127,7 @@ public class KMeansClustering {
 				} catch (IndexOutOfBoundsException e) {
 					// pass
 				}
-					
+
 			}
 		}
 		br.close();
@@ -290,18 +292,18 @@ public class KMeansClustering {
 				}
 			}
 		}
-//		System.out.print(dotProduct+" "+Math.sqrt(documentNorm*centroidNorm)+" ");
+		//		System.out.print(dotProduct+" "+Math.sqrt(documentNorm*centroidNorm)+" ");
 		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
-	
-//	/************************* *************************/
-//		
-//	/**
-//	 * @description computes IDF of given word based on data
-//	 */
-//	private double computeIDF(int wordID) {
-//		
-//	}
+
+	//	/************************* *************************/
+	//		
+	//	/**
+	//	 * @description computes IDF of given word based on data
+	//	 */
+	//	private double computeIDF(int wordID) {
+	//		
+	//	}
 
 	/************************* *************************/
 
@@ -428,27 +430,27 @@ public class KMeansClustering {
 	 * @description Main function for local testing.
 	 */
 	public static void main(String[] args) throws IOException {
-//		List<Wount> a = new ArrayList<Wount>();
-//		a.add(new Wount(1, 3));
-//		a.add(new Wount(3, 1));
-//		a.add(new Wount(5, 2));
-//		a.add(new Wount(6, 2));
-//		a.add(new Wount(10, 1));
-//		a.add(new Wount(14, 3));
-//		a.add(new Wount(17, 5));
-//		a.add(new Wount(18, 2));
-//
-//		List<Wount> b = new ArrayList<Wount>();
-//		b.add(new Wount(2, 1));
-//		b.add(new Wount(3, 2));
-//		b.add(new Wount(6, 4));
-//		b.add(new Wount(7, 1));
-//		b.add(new Wount(12, 1));
-//		b.add(new Wount(14, 2));
-//		b.add(new Wount(15, 3));
-//		b.add(new Wount(18, 1));
+		//		List<Wount> a = new ArrayList<Wount>();
+		//		a.add(new Wount(1, 3));
+		//		a.add(new Wount(3, 1));
+		//		a.add(new Wount(5, 2));
+		//		a.add(new Wount(6, 2));
+		//		a.add(new Wount(10, 1));
+		//		a.add(new Wount(14, 3));
+		//		a.add(new Wount(17, 5));
+		//		a.add(new Wount(18, 2));
+		//
+		//		List<Wount> b = new ArrayList<Wount>();
+		//		b.add(new Wount(2, 1));
+		//		b.add(new Wount(3, 2));
+		//		b.add(new Wount(6, 4));
+		//		b.add(new Wount(7, 1));
+		//		b.add(new Wount(12, 1));
+		//		b.add(new Wount(14, 2));
+		//		b.add(new Wount(15, 3));
+		//		b.add(new Wount(18, 1));
 
-//		KMeansClustering km = new KMeansClustering(2, true);
+		//		KMeansClustering km = new KMeansClustering(2, true);
 		System.out.println(System.getProperty("os.name"));
 		//		System.out.println(km.addCoordinates(a, b));
 		//		for (int c = 0; c < km.kMeans.size() ; c++) {
