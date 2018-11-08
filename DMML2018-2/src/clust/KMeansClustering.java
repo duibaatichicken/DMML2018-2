@@ -12,6 +12,7 @@ import java.util.Map;
 
 import ds.Centroid;
 import ds.Wount;
+import util.FileIo;
 
 @SuppressWarnings("unused")
 public class KMeansClustering {
@@ -20,7 +21,13 @@ public class KMeansClustering {
 	private static String KOS_DATASET_FILEPATH = "datasets/docword.kos.txt";
 	private static String NIPS_DATASET_FILEPATH = "datasets/docword.nips.txt";
 	private static String ENRON_DATASET_FILEPATH = "datasets/docword.enron.txt";
-	private static final double ACCEPTANCE_THRESHOLD = 0.9;
+	private static String TOY_DATASET_OUTPUT_FILEPATH = "datasets/toy_output.txt";
+	private static String KOS_DATASET_OUTPUT_FILEPATH = "datasets/kos_output.txt";
+	private static String NIPS_DATASET_OUTPUT_FILEPATH = "datasets/nips_output.txt";
+	private static String ENRON_DATASET_OUTPUT_FILEPATH = "datasets/enron_output.txt";
+	private static final double ACCEPTANCE_THRESHOLD = 0.8;
+	
+	private StringBuilder output = new StringBuilder();
 
 	private int numberOfDocuments;
 	private int numberOfWords;
@@ -39,11 +46,16 @@ public class KMeansClustering {
 	 */
 	public KMeansClustering(int k, boolean useAngleDistance) throws IOException {
 		
+		// Set individual filepaths.
 		if(System.getProperty("os.name").equals("Windows 10")) {
 			TOY_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.toy.txt";
 			KOS_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.kos.txt";
 			NIPS_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.nips.txt";
 			ENRON_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.enron.txt";
+			TOY_DATASET_OUTPUT_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\output.txt";
+			KOS_DATASET_OUTPUT_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\output.txt";
+			NIPS_DATASET_OUTPUT_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\output.txt";
+			ENRON_DATASET_OUTPUT_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\output.txt";
 		} else if(System.getProperty("os.name").equals("Mac OS X")) {
 			
 		} else {
@@ -52,6 +64,10 @@ public class KMeansClustering {
 			KOS_DATASET_FILEPATH = "";
 			NIPS_DATASET_FILEPATH = "";
 			ENRON_DATASET_FILEPATH = "";
+			TOY_DATASET_OUTPUT_FILEPATH = "";
+			KOS_DATASET_OUTPUT_FILEPATH = "";
+			NIPS_DATASET_OUTPUT_FILEPATH = "";
+			ENRON_DATASET_OUTPUT_FILEPATH = "";
 		}
 		
 		this.data = new HashMap<Integer, List<Wount>>();
@@ -64,7 +80,7 @@ public class KMeansClustering {
 		 * metadata data is as follows. It is a list of three integers,
 		 * (#documents, #words, #nonzero entries)
 		 */
-		List<Integer> metadata = readData(TOY_DATASET_FILEPATH);
+		List<Integer> metadata = readData(KOS_DATASET_FILEPATH);
 		this.numberOfDocuments = metadata.get(0);
 		this.numberOfWords = metadata.get(1);
 		//		System.out.println(data);
@@ -92,14 +108,17 @@ public class KMeansClustering {
 		//		}
 
 		//		// Run K-means clustering up to convergence.
-		int iterationCounter = 0;
+		int iterationCounter = 1;
 		while (!this.hasConverged()) {
-			System.out.println("*** Iteration "+ ++iterationCounter + " ***");
+			System.out.print("*** Iteration "+ iterationCounter + " *** - ");
+			output.append("*** Iteration "+ iterationCounter + " *** - ");
+			iterationCounter++;
 			cluster(useAngleDistance);
 			recomputeCentroids();
 		}
 
 		displayClusters(false);
+		FileIo.writeToFile(output.toString(), KOS_DATASET_OUTPUT_FILEPATH, false);
 	}
 
 	/************************* *************************/
@@ -159,12 +178,16 @@ public class KMeansClustering {
 	 */
 	private void initialiseKMeans(int k) {
 		System.out.print("Initializing "+ k +" means...");
+		output.append("Initializing "+ k +" means...");
+		
 		int d = numberOfDocuments / k;
 		for(int i=1;i<=k;++i) {
 			kMeans.add(new Centroid(i, data.get(d*i)));
 		}
 		System.out.println(" done.");
+		output.append(" done.\n");
 		System.out.println("-----------------------------");
+		output.append("-----------------------------\n");
 		//		for(int i=0;i<kMeans.size();++i) {
 		//			System.out.println(kMeans.get(i));
 		//		}
@@ -178,7 +201,8 @@ public class KMeansClustering {
 	 * metric by default.
 	 */
 	private void cluster(boolean useAngleDistance) {
-		System.out.print("Clustering data... ");
+//		System.out.print("Clustering data... ");
+//		output.append("Clustering data... ");
 		double minDistance = Integer.MAX_VALUE;
 		double currentDistance = 0;
 		int closestCentroidID = -1;
@@ -195,7 +219,22 @@ public class KMeansClustering {
 			previousMembership[currentDocumentID-1] = currentMembership[currentDocumentID-1];
 			currentMembership[currentDocumentID-1] = closestCentroidID;
 		}
-		System.out.println("done!");
+		
+		// Get cluster counts
+		int[] sizes = new int[k];
+		for(int i=0;i<k;++i) {
+			sizes[i] = 0;
+		}
+		for(int i=0;i<numberOfDocuments;++i) {
+			sizes[currentMembership[i]-1]++;
+		}
+		for(int i=0;i<k;++i) {
+			System.out.print(sizes[i] + ", ");
+		}
+		System.out.println();
+		
+//		System.out.println("done!");
+//		output.append("done!\n");
 		//		for(int i=0;i<numberOfDocuments;++i) {
 		//			System.out.print(currentMembership[i] + ",");
 		//		}
@@ -209,7 +248,8 @@ public class KMeansClustering {
 	 * of formed clusters.
 	 */
 	private void recomputeCentroids() {
-		System.out.print("Recomputing centroids... ");
+//		System.out.print("Recomputing centroids... ");
+//		output.append("Recomputing centroids... ");
 		int k = kMeans.size();
 		Wount currentWount = new Wount(-1,-1);
 		int[] clusterSizes = new int[k];
@@ -231,8 +271,9 @@ public class KMeansClustering {
 		for (int i = 0; i < k; ++i) {
 			kMeans.get(i).divideCoordinates((double)clusterSizes[i]);
 		}
-		System.out.println("done!");
-		System.out.println();
+//		System.out.println("done!");
+//		output.append("done!\n\n");
+//		System.out.println();
 		//		System.out.println(kMeans);
 	}
 
@@ -424,16 +465,21 @@ public class KMeansClustering {
 		List<Integer> currCluster = null;
 		if(showClusterSizeOnly) {
 			System.out.println("Cluster sizes:");
+			output.append("Cluster sizes:\n");
 			while(outputIter.hasNext()) {
 				currCluster = outputIter.next();
 				System.out.print(currCluster.size() + ", ");
+				output.append(currCluster.size() + ", ");
 			}
 			System.out.println();
+			output.append("\n");
 		} else {
 			System.out.println("Clusters:");
+			output.append("Clusters:\n");
 			while(outputIter.hasNext()) {
 				currCluster = outputIter.next();
 				System.out.println(currCluster);
+				output.append(currCluster + "\n");
 			}
 		}
 	}
@@ -445,44 +491,8 @@ public class KMeansClustering {
 	 * @description Main function for local testing.
 	 */
 	public static void main(String[] args) throws IOException {
-		//		List<Wount> a = new ArrayList<Wount>();
-		//		a.add(new Wount(1, 3));
-		//		a.add(new Wount(3, 1));
-		//		a.add(new Wount(5, 2));
-		//		a.add(new Wount(6, 2));
-		//		a.add(new Wount(10, 1));
-		//		a.add(new Wount(14, 3));
-		//		a.add(new Wount(17, 5));
-		//		a.add(new Wount(18, 2));
-		//
-		//		List<Wount> b = new ArrayList<Wount>();
-		//		b.add(new Wount(2, 1));
-		//		b.add(new Wount(3, 2));
-		//		b.add(new Wount(6, 4));
-		//		b.add(new Wount(7, 1));
-		//		b.add(new Wount(12, 1));
-		//		b.add(new Wount(14, 2));
-		//		b.add(new Wount(15, 3));
-		//		b.add(new Wount(18, 1));
-
-		KMeansClustering km = new KMeansClustering(2, false);
-//		System.out.println(System.getProperty("os.name"));
-		//		System.out.println(km.addCoordinates(a, b));
-		//		for (int c = 0; c < km.kMeans.size() ; c++) {
-		//			System.out.println("Mean "+(c+1));
-		//			for (int i = 0; i < km.kMeans.get(c).getCoordinatesSize(); ++i) {
-		//				System.out.print(km.kMeans.get(c).getCoordinates().get(i).getId() + " ");
-		//				if ((i + 1) % 20 == 0) {
-		//					System.out.println();
-		//				}
-		//			}
-		//			for (int i = 1; i <= km.numberOfDocuments; ++i) {
-		//				System.out.println("\n" + km.getJaccardDistance(i, c+1));
-		////				System.out.println("\n" + km.getAngleDistance(i, c+1));
-		//			} 
-		//		}
-		////		for (int d = 1; d <= km.numberOfDocuments; ++d) {
-		////			System.out.println(km.data.get(d));
-		////		}
+		for(int i=2;i<11;++i) {
+			KMeansClustering km = new KMeansClustering(i, false);
+		}
 	}
 }
