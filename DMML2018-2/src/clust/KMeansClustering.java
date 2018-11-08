@@ -12,6 +12,7 @@ import java.util.Map;
 
 import ds.Centroid;
 import ds.Wount;
+import net.sf.javaml.clustering.KMeans;
 import util.FileIo;
 
 @SuppressWarnings("unused")
@@ -35,9 +36,10 @@ public class KMeansClustering {
 	private Map<Integer, List<Wount>> data;
 	private List<Centroid> kMeans;
 	private List<Integer> documentFrequencies;
+	private List<Integer> documentSizes;
 	private int[] previousMembership;
 	private int[] currentMembership;
-
+	
 	/************************* *************************/
 
 	/**
@@ -73,6 +75,7 @@ public class KMeansClustering {
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
 		this.documentFrequencies = new ArrayList<Integer>();
+		this.documentSizes = new ArrayList<Integer>();
 
 		/**
 		 * Use the documents filepath to read the file and store it
@@ -352,15 +355,6 @@ public class KMeansClustering {
 		return Math.acos(dotProduct/Math.sqrt(documentNorm*centroidNorm));
 	}
 
-	//	/************************* *************************/
-	//		
-	//	/**
-	//	 * @description computes IDF of given word based on data
-	//	 */
-	//	private double computeIDF(int wordID) {
-	//		
-	//	}
-
 	/************************* *************************/
 
 	/**
@@ -481,6 +475,22 @@ public class KMeansClustering {
 				System.out.println(currCluster);
 				output.append(currCluster + "\n");
 			}
+		}
+	}
+	
+	/************************* *************************/
+	
+	/**
+	 * @description Return the sizes of all documents
+	 */
+	private void getDocumentSizes() {
+		for(int i=0;i<numberOfDocuments;++i) {
+			List<Wount> wounts = data.get(i+1);
+			int tmpAns = 0;
+			for(Wount currWount : wounts) {
+				tmpAns += currWount.getCount();
+			}
+			documentSizes.add(tmpAns);
 		}
 	}
 
