@@ -38,7 +38,10 @@ public class KMeansClustering {
 	private List<Integer> documentSizes;
 	private int[] previousMembership;
 	private int[] currentMembership;
-	
+	private int[] currentAverageMembership;
+	private int[] previousAverageMembership;
+	private boolean useAngleDistance;
+
 	/************************* *************************/
 
 	/**
@@ -46,6 +49,8 @@ public class KMeansClustering {
 	 * @throws IOException 
 	 */
 	public KMeansClustering(int k, boolean useAngleDistance) throws IOException {
+		
+		this.useAngleDistance = useAngleDistance;
 		
 		// Set individual filepaths.
 		if(System.getProperty("os.name").equals("Windows 10")) {
@@ -90,9 +95,13 @@ public class KMeansClustering {
 		// Initialise other fields based on data.
 		this.previousMembership = new int[numberOfDocuments];
 		this.currentMembership = new int[numberOfDocuments];
+		this.currentAverageMembership = new int[numberOfDocuments];
+		this.previousAverageMembership = new int[numberOfDocuments];
 		for(int i=0;i<numberOfDocuments;++i) {
 			this.previousMembership[i] = -1;
+			this.previousAverageMembership[i] = -1;
 			this.currentMembership[i] = 0;
+			this.currentAverageMembership[i] = 0;
 		}
 
 		// testing code
@@ -114,8 +123,7 @@ public class KMeansClustering {
 		while (!this.hasConverged()) {
 			System.out.print("*** Iteration "+ iterationCounter + " *** - ");
 			output.append("*** Iteration "+ iterationCounter + " *** - ");
-			iterationCounter++;
-			cluster(useAngleDistance);
+			cluster(iterationCounter++);
 			recomputeCentroids();
 		}
 
@@ -202,7 +210,7 @@ public class KMeansClustering {
 	 * given centroids and given metric. Uses Jaccard
 	 * metric by default.
 	 */
-	private void cluster(boolean useAngleDistance) {
+	private void cluster(int iteration) {
 //		System.out.print("Clustering data... ");
 //		output.append("Clustering data... ");
 		double minDistance = Integer.MAX_VALUE;
@@ -217,6 +225,12 @@ public class KMeansClustering {
 					closestCentroidID = currentCentroidID;
 					minDistance = currentDistance;
 				}
+			}
+			if (!useAngleDistance) {
+				previousAverageMembership[currentDocumentID - 1] = currentAverageMembership[currentDocumentID - 1];
+				currentAverageMembership[currentDocumentID
+						- 1] = (previousAverageMembership[currentDocumentID - 1] * (iteration - 1) + closestCentroidID)
+								/ iteration;
 			}
 			previousMembership[currentDocumentID-1] = currentMembership[currentDocumentID-1];
 			currentMembership[currentDocumentID-1] = closestCentroidID;
@@ -293,7 +307,10 @@ public class KMeansClustering {
 			//			System.out.println(kMeans.get(i));
 		}
 		for(int i=0;i<numberOfDocuments;++i) {
-			if(previousMembership[i] == currentMembership[i]) {
+			if (previousMembership[i] == currentMembership[i]) {
+				sameCount++;
+			}
+			else if (!useAngleDistance && (previousAverageMembership[i] == currentAverageMembership[i])) {
 				sameCount++;
 			}
 		}
@@ -501,7 +518,7 @@ public class KMeansClustering {
 	 */
 	public static void main(String[] args) throws IOException {
 		for(int i=2;i<11;++i) {
-			KMeansClustering km = new KMeansClustering(i, false);
+			KMeansClustering km = new KMeansClustering(i, true);
 		}
 	}
 }
