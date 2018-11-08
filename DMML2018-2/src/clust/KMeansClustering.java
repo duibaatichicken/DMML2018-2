@@ -12,7 +12,6 @@ import java.util.Map;
 
 import ds.Centroid;
 import ds.Wount;
-import net.sf.javaml.clustering.KMeans;
 import util.FileIo;
 
 @SuppressWarnings("unused")
