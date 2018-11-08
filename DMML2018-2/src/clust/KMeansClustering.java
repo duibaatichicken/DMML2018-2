@@ -16,11 +16,10 @@ import ds.Wount;
 @SuppressWarnings("unused")
 public class KMeansClustering {
 
-	private static final String TOY_DATASET_FILEPATH = "datasets/docword.toy.txt";
-	private static final String KOS_DATASET_FILEPATH = "datasets/docword.kos.txt";
-	private static final String NIPS_DATASET_FILEPATH = "datasets/docword.nips.txt";
-	private static final String ENRON_DATASET_FILEPATH = "datasets/docword.enron.txt";
-	private static final String VOCABULARY_FILEPATH = "";
+	private static String TOY_DATASET_FILEPATH = "datasets/docword.toy.txt";
+	private static String KOS_DATASET_FILEPATH = "datasets/docword.kos.txt";
+	private static String NIPS_DATASET_FILEPATH = "datasets/docword.nips.txt";
+	private static String ENRON_DATASET_FILEPATH = "datasets/docword.enron.txt";
 	private static final double ACCEPTANCE_THRESHOLD = 0.9;
 
 	private int numberOfDocuments;
@@ -39,6 +38,22 @@ public class KMeansClustering {
 	 * @throws IOException 
 	 */
 	public KMeansClustering(int k, boolean useAngleDistance) throws IOException {
+		
+		if(System.getProperty("os.name").equals("Windows 10")) {
+			TOY_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.toy.txt";
+			KOS_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.kos.txt";
+			NIPS_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.nips.txt";
+			ENRON_DATASET_FILEPATH = "C:\\Users\\Ankita Sarkar\\git\\DMML2018-2\\DMML2018-2\\datasets\\docword.enron.txt";
+		} else if(System.getProperty("os.name").equals("Mac OS X")) {
+			
+		} else {
+			// Change filepaths to required format.
+			TOY_DATASET_FILEPATH = "";
+			KOS_DATASET_FILEPATH = "";
+			NIPS_DATASET_FILEPATH = "";
+			ENRON_DATASET_FILEPATH = "";
+		}
+		
 		this.data = new HashMap<Integer, List<Wount>>();
 		this.kMeans = new ArrayList<Centroid>();
 		this.documentFrequencies = new ArrayList<Integer>();
