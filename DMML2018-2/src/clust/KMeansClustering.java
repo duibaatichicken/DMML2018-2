@@ -61,7 +61,7 @@ public class KMeansClustering {
 		}
 		
 		// testing code
-		System.out.println("Document frequencies:\n"+this.documentFrequencies);
+//		System.out.println("Document frequencies:\n"+this.documentFrequencies);
 
 		// Initialise the k different means.
 		initialiseKMeans(k);
@@ -190,7 +190,6 @@ public class KMeansClustering {
 	/**
 	 * @description Recompute centroids by taking average
 	 * of formed clusters.
-	 * TODO : Improve the implementation. Perhaps a customised WountList that supports addition?
 	 */
 	private void recomputeCentroids() {
 		System.out.print("Recomputing centroids... ");
@@ -449,7 +448,8 @@ public class KMeansClustering {
 //		b.add(new Wount(15, 3));
 //		b.add(new Wount(18, 1));
 
-		KMeansClustering km = new KMeansClustering(2, true);
+//		KMeansClustering km = new KMeansClustering(2, true);
+		System.out.println(System.getProperty("os.name"));
 		//		System.out.println(km.addCoordinates(a, b));
 		//		for (int c = 0; c < km.kMeans.size() ; c++) {
 		//			System.out.println("Mean "+(c+1));
